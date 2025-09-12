@@ -5,7 +5,7 @@ const API_URL = '/api';
 let currentSessionId = null;
 
 // DOM elements
-let chatMessages, chatInput, sendButton, totalCourses, courseTitles;
+let chatMessages, chatInput, sendButton, totalCourses, courseTitles, newChatButton;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sendButton = document.getElementById('sendButton');
     totalCourses = document.getElementById('totalCourses');
     courseTitles = document.getElementById('courseTitles');
+    newChatButton = document.getElementById('newChatButton');
     
     setupEventListeners();
     createNewSession();
@@ -29,6 +30,8 @@ function setupEventListeners() {
         if (e.key === 'Enter') sendMessage();
     });
     
+    // New chat button
+    newChatButton.addEventListener('click', handleNewChat);
     
     // Suggested questions
     document.querySelectorAll('.suggested-item').forEach(button => {
@@ -122,10 +125,30 @@ function addMessage(content, type, sources = null, isWelcome = false) {
     let html = `<div class="message-content">${displayContent}</div>`;
     
     if (sources && sources.length > 0) {
+        // Format sources as clickable links or plain text
+        const formattedSources = sources.map(source => {
+            if (typeof source === 'object' && source !== null) {
+                // New format with text and optional link
+                const sourceText = source.text || '[Unknown Source]';
+                
+                if (source.link) {
+                    return `<a href="${source.link}" target="_blank" rel="noopener noreferrer" style="color:#e6f1ff; text-decoration: underline; font-weight: 600;">${escapeHtml(sourceText)}</a>`;
+                } else {
+                    return escapeHtml(sourceText);
+                }
+            } else if (typeof source === 'string') {
+                // Legacy format (plain string)
+                return escapeHtml(source);
+            } else {
+                // Fallback for unexpected formats
+                return escapeHtml('[Invalid Source]');
+            }
+        });
+
         html += `
             <details class="sources-collapsible">
                 <summary class="sources-header">Sources</summary>
-                <div class="sources-content">${sources.join(', ')}</div>
+                <div class="sources-content">${formattedSources.join('')}</div>
             </details>
         `;
     }
@@ -145,6 +168,12 @@ function escapeHtml(text) {
 }
 
 // Removed removeMessage function - no longer needed since we handle loading differently
+
+// Handle new chat button click
+function handleNewChat() {
+    createNewSession();
+    chatInput.focus();
+}
 
 async function createNewSession() {
     currentSessionId = null;

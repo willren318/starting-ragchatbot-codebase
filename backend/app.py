@@ -8,6 +8,8 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 import os
+import logging
+import traceback
 
 from config import config
 from rag_system import RAGSystem
@@ -35,6 +37,11 @@ app.add_middleware(
 rag_system = RAGSystem(config)
 
 # Pydantic models for request/response
+class Source(BaseModel):
+    """Source model with text and optional link"""
+    text: str
+    link: Optional[str] = None
+
 class QueryRequest(BaseModel):
     """Request model for course queries"""
     query: str
@@ -43,7 +50,7 @@ class QueryRequest(BaseModel):
 class QueryResponse(BaseModel):
     """Response model for course queries"""
     answer: str
-    sources: List[str]
+    sources: List[Source]
     session_id: str
 
 class CourseStats(BaseModel):
@@ -65,12 +72,24 @@ async def query_documents(request: QueryRequest):
         # Process query using RAG system
         answer, sources = rag_system.query(request.query, session_id)
         
+        # Convert sources to Source objects (handle both dict and string formats)
+        formatted_sources = []
+        for source in sources:
+            if isinstance(source, dict):
+                # New format with text and link
+                formatted_sources.append(Source(text=source["text"], link=source.get("link")))
+            else:
+                # Legacy format (plain string)
+                formatted_sources.append(Source(text=source, link=None))
+        
         return QueryResponse(
             answer=answer,
-            sources=sources,
+            sources=formatted_sources,
             session_id=session_id
         )
     except Exception as e:
+        logging.error(f"Error processing query: {e}")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/courses", response_model=CourseStats)
@@ -83,6 +102,8 @@ async def get_course_stats():
             course_titles=analytics["course_titles"]
         )
     except Exception as e:
+        logging.error(f"Error getting course stats: {e}")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.on_event("startup")

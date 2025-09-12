@@ -24,6 +24,13 @@ class Config:
     # Database paths
     CHROMA_PATH: str = "./chroma_db"  # ChromaDB storage location
 
+    def __post_init__(self):
+        """Post-initialization checks"""
+        if self.ANTHROPIC_API_KEY:
+            print(f"--- ANTHROPIC_API_KEY loaded successfully. Key starts with '{self.ANTHROPIC_API_KEY[:5]}' and ends with '{self.ANTHROPIC_API_KEY[-4:]}' ---")
+        else:
+            print("--- WARNING: ANTHROPIC_API_KEY is not set or empty. ---")
+
 config = Config()
 
 

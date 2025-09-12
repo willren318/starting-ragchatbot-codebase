@@ -132,6 +132,42 @@ class VectorStore:
             
         return {"lesson_number": lesson_number}
     
+    def get_lesson_link(self, course_title: str, lesson_number: int) -> Optional[str]:
+        """
+        Retrieve the lesson link for a specific course and lesson number.
+        
+        Args:
+            course_title: The course title to search for
+            lesson_number: The lesson number to find the link for
+            
+        Returns:
+            The lesson link URL if found, None otherwise
+        """
+        import json
+        
+        try:
+            # Query the course catalog for this course
+            results = self.course_catalog.query(
+                query_texts=[course_title],
+                n_results=1,
+                where={"title": course_title}
+            )
+            
+            if results['metadatas'] and results['metadatas'][0]:
+                metadata = results['metadatas'][0][0]
+                lessons_json = metadata.get('lessons_json')
+                
+                if lessons_json:
+                    lessons_data = json.loads(lessons_json)
+                    # Find the lesson with matching lesson_number
+                    for lesson in lessons_data:
+                        if lesson.get('lesson_number') == lesson_number:
+                            return lesson.get('lesson_link')
+        except Exception as e:
+            print(f"Error retrieving lesson link: {e}")
+        
+        return None
+    
     def add_course_metadata(self, course: Course):
         """Add course information to the catalog for semantic search"""
         import json
