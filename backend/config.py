@@ -30,6 +30,13 @@ class Config:
             print(f"--- ANTHROPIC_API_KEY loaded successfully. Key starts with '{self.ANTHROPIC_API_KEY[:5]}' and ends with '{self.ANTHROPIC_API_KEY[-4:]}' ---")
         else:
             print("--- WARNING: ANTHROPIC_API_KEY is not set or empty. ---")
+        
+        # Validate MAX_RESULTS to prevent ChromaDB failures
+        if self.MAX_RESULTS <= 0:
+            print(f"--- ERROR: MAX_RESULTS ({self.MAX_RESULTS}) must be positive. ChromaDB requires n_results > 0 ---")
+            raise ValueError(f"MAX_RESULTS must be positive, got {self.MAX_RESULTS}")
+        elif self.MAX_RESULTS < 3:
+            print(f"--- WARNING: MAX_RESULTS ({self.MAX_RESULTS}) is very low. Consider 5-20 for better context ---")
 
 config = Config()
 
