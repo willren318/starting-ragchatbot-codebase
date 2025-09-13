@@ -19,35 +19,64 @@ python -m uvicorn app:app --reload --port 8000
 
 ### Environment Setup
 ```bash
-# Activate the virtual environment
-source cc_venv/bin/activate
+# Install dependencies
+uv sync
 
-# Install dependencies (if needed)
-pip install chromadb==1.0.15 anthropic==0.58.2 sentence-transformers==5.0.0 fastapi==0.116.1 uvicorn==0.35.0 python-multipart==0.0.20 python-dotenv==1.1.1
+# Install development dependencies (includes code quality tools)
+uv sync --dev
 
 # Set up environment variables
 cp .env.example .env
 # Edit .env with your ANTHROPIC_API_KEY
 ```
 
+### Code Quality Tools
+```bash
+# Format code automatically
+./scripts/format.sh
+
+# Run all quality checks (formatting, linting, type checking)
+./scripts/lint.sh
+
+# Individual tool commands
+uv run black .           # Format code with Black
+uv run isort .           # Sort imports
+uv run flake8 .          # Lint with Flake8
+uv run mypy .            # Type checking with MyPy
+```
+
 ### Database Management
 The system uses ChromaDB for vector storage. Database files are stored in `./backend/chroma_db/` and are created automatically on first run. To reset the knowledge base, delete this directory.
 
 ### Dependency Management
-**IMPORTANT**: Before adding any new dependencies to this project, you must install them in the `cc_venv` virtual environment:
+**IMPORTANT**: Use uv to manage dependencies in this project:
 
 ```bash
-# Activate the virtual environment first
-source cc_venv/bin/activate
+# Add a new dependency
+uv add <new-dependency>
 
-# Then install the new dependency
-pip install <new-dependency>
+# Add a development dependency
+uv add <new-dev-dependency> --dev
 
-# Update pyproject.toml if needed
-# Test that the application still works
+# Install/sync all dependencies
+uv sync --dev
 ```
 
-This ensures compatibility and prevents import errors during development and testing.
+### Development Workflow
+**IMPORTANT**: Always run code quality checks before committing:
+
+```bash
+# Format and check code quality
+./scripts/format.sh
+./scripts/lint.sh
+
+# Or run individual checks
+uv run black --check .
+uv run flake8 .
+uv run mypy .
+```
+
+This ensures consistent code style and catches potential issues early.
 
 ## Architecture Overview
 
