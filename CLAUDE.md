@@ -6,19 +6,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Running the Application
 ```bash
-# Quick start using the provided script
+# Quick start using the provided script with cc_venv
+source cc_venv/bin/activate
 chmod +x run.sh
 ./run.sh
 
 # Manual start from backend directory
+source cc_venv/bin/activate
 cd backend
-uv run uvicorn app:app --reload --port 8000
+python -m uvicorn app:app --reload --port 8000
 ```
 
 ### Environment Setup
 ```bash
-# Install dependencies
-uv sync
+# Activate the virtual environment
+source cc_venv/bin/activate
+
+# Install dependencies (if needed)
+pip install chromadb==1.0.15 anthropic==0.58.2 sentence-transformers==5.0.0 fastapi==0.116.1 uvicorn==0.35.0 python-multipart==0.0.20 python-dotenv==1.1.1
 
 # Set up environment variables
 cp .env.example .env
@@ -27,6 +32,22 @@ cp .env.example .env
 
 ### Database Management
 The system uses ChromaDB for vector storage. Database files are stored in `./backend/chroma_db/` and are created automatically on first run. To reset the knowledge base, delete this directory.
+
+### Dependency Management
+**IMPORTANT**: Before adding any new dependencies to this project, you must install them in the `cc_venv` virtual environment:
+
+```bash
+# Activate the virtual environment first
+source cc_venv/bin/activate
+
+# Then install the new dependency
+pip install <new-dependency>
+
+# Update pyproject.toml if needed
+# Test that the application still works
+```
+
+This ensures compatibility and prevents import errors during development and testing.
 
 ## Architecture Overview
 
